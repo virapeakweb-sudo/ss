@@ -1,0 +1,42 @@
+/*
+Theme Name: viratheme
+Author: viraTeam
+Author URI: http://virapeak.ir/
+Description: قالب اختصاصی برای سایت سیر و سلوک
+Version: 1.0.0
+*/
+
+html {
+    scroll-behavior: smooth;
+}
+
+@font-face {
+    font-family: 'YekanBakh';
+    /* مسیر دهی نسبی به پوشه fonts */
+    src: url('fonts/YekanBakh-VF.woff2') format('woff2-variations'),
+        url('fonts/YekanBakh-VF.woff2') format('woff2'),
+        url('fonts/YekanBakh-VF.woff') format('woff-variations'),
+        url('fonts/YekanBakh-VF.woff') format('woff');
+    font-weight: 100 900;
+    /* خیلی مهم: بازه وزنی برای فونت‌های وریبل */
+    font-style: normal;
+    font-display: swap;
+    font-feature-settings: "ss02", "ss06" !important;
+    
+}
+
+/* اعمال فونت روی کل بدنه سایت و تیترها */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+a,
+span,
+li {
+    font-family: 'YekanBakh', sans-serif !important;
+    font-feature-settings: "ss02", "ss06";
+}
