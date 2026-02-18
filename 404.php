@@ -6,7 +6,7 @@
         <img src="<?php echo get_template_directory_uri(); ?>/img/bg-footer.webp" class="w-full h-full object-cover opacity-10 blur-sm" alt="Background">
         <div class="absolute inset-0 hero-pattern opacity-20"></div>
         <div class="absolute inset-0 bg-gradient-to-b from-primary-900/90 via-primary-900/80 to-primary-900"></div>
-    </div> 
+    </div>
 
     <div class="relative z-10 max-w-2xl mx-auto">
         
