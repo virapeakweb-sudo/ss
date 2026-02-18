@@ -1,8 +1,7 @@
 <?php
 /**
  * Template part for displaying tour cards.
- *
- * @package SeiroSolok
+ * Updated by Gemini to fix Filter, Date Format, and Slider
  */
 
 // 1. دریافت داده‌ها (Data Fetching)
@@ -47,12 +46,40 @@ if( have_rows('tarikh') ) {
         }
     endwhile;
 }
+
+// --- بخش جدید: تبدیل فرمت تاریخ (مثلا 1403/12/25 به 25 اسفند) ---
+$formatted_date = $next_date;
+if($next_date) {
+    // 1. نرمال‌سازی جداکننده‌ها (تبدیل - به /)
+    $clean_date = str_replace('-', '/', $next_date);
+    // 2. تکه کردن تاریخ
+    $date_parts = explode('/', $clean_date);
+    
+    // اگر فرمت درست بود (سال/ماه/روز)
+    if(count($date_parts) >= 3) {
+        $day = intval($date_parts[2]); // روز
+        $month_num = intval($date_parts[1]); // ماه
+        
+        $persian_months = [
+            1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد',
+            4 => 'تیر', 5 => 'مرداد', 6 => 'شهریور',
+            7 => 'مهر', 8 => 'آبان', 9 => 'آذر',
+            10 => 'دی', 11 => 'بهمن', 12 => 'اسفند'
+        ];
+        
+        if(isset($persian_months[$month_num])) {
+            $formatted_date = $day . ' ' . $persian_months[$month_num];
+        }
+    }
+}
+
  // لینک
 $permalink = get_permalink();
 $thumbnail = get_the_post_thumbnail_url(get_the_ID(), 'medium_large');
 ?>
 
-<article class="tour-card group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl transition duration-300 flex flex-col h-full relative">
+<!-- تغییرات مهم: اضافه شدن کلاس swiper-slide برای موبایل و data-vehicle برای فیلتر -->
+<article class="tour-card tour-card-item swiper-slide group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl transition duration-300 flex flex-col h-full relative" data-vehicle="<?php echo esc_attr($vehicle); ?>">
     
     <!-- Image Area -->
     <div class="relative h-48 overflow-hidden bg-gray-200">
@@ -111,10 +138,11 @@ $thumbnail = get_the_post_thumbnail_url(get_the_ID(), 'medium_large');
             </div>
             <?php endif; ?>
             
-            <?php if($next_date): ?>
+            <?php if($formatted_date): ?>
+            <!-- تغییر نمایش تاریخ به فرمت متنی -->
             <div class="flex items-center gap-2">
                 <i class="fas fa-calendar-alt text-primary-500 w-4 text-center"></i>
-                <span>تاریخ: <span class="font-bold text-gray-700"><?php echo esc_html($next_date); ?></span></span>
+                <span>تاریخ: <span class="font-bold text-gray-700"><?php echo esc_html($formatted_date); ?></span></span>
             </div>
             <?php endif; ?>
         </div>

@@ -1,5 +1,5 @@
 <?php
-// functions.php v=7 updated 2026-02-18 13:40
+// functions.php v=6 updated 2026-02-18 13:10
 
 /**
  * توابع و تعاریف قالب سیر و سلوک
@@ -246,7 +246,7 @@ add_action('wp_ajax_nopriv_submit_reservation', 'seirosolok_submit_reservation_a
 
 
 // ---------------------------------------------------------
-// بخش جدید: احراز هویت پیامکی (OTP) - نسخه 7 (دیباگ تایید کد)
+// بخش جدید: احراز هویت پیامکی (OTP) - نسخه 6 (رفع خطای 13)
 // ---------------------------------------------------------
 
 // الف) ارسال کد OTP
@@ -259,7 +259,6 @@ function seirosolok_send_otp_ajax() {
     }
 
     $otp = rand(1000, 9999);
-    // ذخیره با کلید otp_09xxxxxxxxx
     set_transient('otp_' . $mobile, $otp, 180);
 
     // تنظیمات پنل پیامک
@@ -267,21 +266,25 @@ function seirosolok_send_otp_ajax() {
     $api_key = '247031-1cd694282b64474691f34d19af15ef00';
     $template = 'seirosolokOTP';
     
-    // فرمت مناسب برای پنل (بدون صفر)
+    // *** اصلاح حیاتی: حذف صفر اول شماره برای این وب‌سرویس خاص ***
+    // خطای 13 میگفت باید با 9 شروع شود.
     $api_mobile = substr($mobile, 1); 
 
     $body = array(
         'ApiKey'      => $api_key,
         'TemplateKey' => $template,
+        // *** تغییر نام پارامتر از Mobile به Destination طبق داکیومنت ***
         'Destination' => $api_mobile,
+        
+        // ارسال متغیرها با همه نام‌های ممکن (p1, token, code) جهت اطمینان
         'Token'       => (string)$otp,
         'token'       => (string)$otp,
         'code'        => (string)$otp,
-        'p1'          => (string)$otp
+        'p1'          => (string)$otp // برخی از نسخه‌های این پنل از p1 استفاده می‌کنند
     );
 
     $response = wp_remote_post($url, array(
-        'body'      => $body,
+        'body'      => $body, // ارسال به صورت Form-Data (آرایه)
         'sslverify' => false,
         'timeout'   => 20
     ));
@@ -292,12 +295,19 @@ function seirosolok_send_otp_ajax() {
         $response_body = wp_remote_retrieve_body($response);
         $result = json_decode($response_body, true);
 
+        // لاگ برای دیباگ (در صورت نیاز)
+        // error_log('SMS Resp: ' . $response_body);
+
         if ( (isset($result['IsSuccess']) && $result['IsSuccess']) || (isset($result['result']['code']) && $result['result']['code'] == 200) ) {
             wp_send_json_success(array('message' => 'کد تایید ارسال شد.'));
         } else {
             $msg = 'خطا در ارسال پیامک';
             if (isset($result['Message'])) $msg .= ': ' . $result['Message'];
             elseif (isset($result['message'])) $msg .= ': ' . $result['message'];
+            
+            // نمایش جزئیات فنی فقط برای دیباگ
+            $msg .= ' (Code: ' . (isset($result['ErrorCode']) ? $result['ErrorCode'] : 'N/A') . ')';
+            
             wp_send_json_error(array('message' => $msg));
         }
     }
@@ -305,36 +315,15 @@ function seirosolok_send_otp_ajax() {
 add_action('wp_ajax_nopriv_send_otp', 'seirosolok_send_otp_ajax');
 add_action('wp_ajax_send_otp', 'seirosolok_send_otp_ajax');
 
-// ب) بررسی OTP (نسخه دیباگ شده)
+// ب) بررسی OTP
 function seirosolok_verify_otp_ajax() {
     $mobile = isset($_POST['mobile']) ? sanitize_text_field($_POST['mobile']) : '';
     $otp    = isset($_POST['otp']) ? sanitize_text_field($_POST['otp']) : '';
 
-    // 1. لاگ اطلاعات دریافتی
-    error_log("OTP Verify Request - Mobile: $mobile | Input OTP: $otp");
+    $saved_otp = get_transient('otp_' . $mobile);
 
-    // 2. بازیابی کد ذخیره شده
-    // نکته: ما در مرحله قبل با فرمت 09xxxx ذخیره کردیم. اینجا هم باید همان باشد.
-    $transient_key = 'otp_' . $mobile;
-    $saved_otp = get_transient($transient_key);
-
-    error_log("OTP Saved in DB: " . ($saved_otp ? $saved_otp : 'NOT FOUND or EXPIRED'));
-
-    // 3. مقایسه (با تبدیل به رشته برای اطمینان از نوع داده)
-    if ( !$saved_otp || (string)$saved_otp !== (string)$otp ) {
-        // پیام خطای دقیق برای دیباگ
-        $debug_error = "کد وارد شده صحیح نیست.";
-        
-        // اگر کد در دیتابیس نبود (منقضی شده)
-        if (!$saved_otp) {
-            $debug_error .= " (کد منقضی شده یا شماره موبایل تغییر کرده)";
-        } 
-        // اگر کد بود اما اشتباه بود
-        else {
-            $debug_error .= " (کد دریافتی: $otp - کد اصلی: $saved_otp)"; 
-        }
-
-        wp_send_json_error(array('message' => $debug_error));
+    if ( !$saved_otp || $saved_otp != $otp ) {
+        wp_send_json_error(array('message' => 'کد تایید اشتباه یا منقضی شده است.'));
     }
 
     $user = get_user_by('login', $mobile);

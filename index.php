@@ -18,7 +18,7 @@
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-2 w-2 bg-gold-500"></span>
                 </span>
-                ثبت نام کاروان‌های ویژه عرفه و محرم آغاز شد
+                ثبت نام کاروان‌های ویژه رمضان و نوروز آغاز شد
             </span>
             <h1 class="text-3xl md:text-6xl font-black text-white mb-4 md:mb-6 leading-tight drop-shadow-lg">
                 سفر به کربلا، با شرایط
@@ -94,7 +94,7 @@
 
                 <!-- دکمه جستجو -->
                 <div>
-                    <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-primary-500/30 transition duration-200 active:scale-95 flex items-center justify-center gap-2">
+                    <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl  transition duration-200 active:scale-95 flex items-center justify-center gap-2">
                         <i class="fas fa-search"></i>
                         جستجو
                     </button>
@@ -147,37 +147,41 @@
                 <!-- Filter Chips -->
                 <div class="flex overflow-x-auto pb-4 md:pb-0 gap-2 w-full md:w-auto no-scrollbar snap-x px-1">
                     <button onclick="filterTours('all', this)" class="filter-btn active snap-center whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold border bg-primary-600 text-white border-transparent transition-all shadow-sm">همه تورها</button>
-                    <button onclick="filterTours('air', this)" class="filter-btn snap-center whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold border border-gray-200 text-gray-600 hover:border-primary-500 transition-all">فقط هوایی</button>
-                    <button onclick="filterTours('land', this)" class="filter-btn snap-center whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold border border-gray-200 text-gray-600 hover:border-primary-500 transition-all">فقط زمینی</button>
+                    <button onclick="filterTours('airplane', this)" class="filter-btn snap-center whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold border border-gray-200 text-gray-600 hover:border-primary-500 transition-all">فقط هوایی</button>
+                    <button onclick="filterTours('bus', this)" class="filter-btn snap-center whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold border border-gray-200 text-gray-600 hover:border-primary-500 transition-all">فقط زمینی</button>
                 </div>
             </div>
 
-            <!-- Tours Grid -->
-            <div id="tours-grid" class="flex overflow-x-auto snap-x gap-4 pb-6 -mx-4 px-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-8 md:overflow-visible md:pb-0 md:mx-0 md:px-0">
-                
-                <?php
-                $args = array(
-                    'post_type'      => 'tour',
-                    'posts_per_page' => 6,
-                    'orderby'        => 'date',
-                    'order'          => 'DESC'
-                );
-                
-                $tours_query = new WP_Query( $args );
+            <!-- Tours Grid / Slider (Structure Modified for Swiper) -->
+            <div class="swiper myToursSwiper md:!grid md:!grid-cols-2 lg:!grid-cols-3 md:!gap-8 md:!overflow-visible">
+                <div class="swiper-wrapper md:!contents" id="tours-grid">
+                    
+                    <?php
+                    $args = array(
+                        'post_type'      => 'tour',
+                        'posts_per_page' => 6,
+                        'orderby'        => 'date',
+                        'order'          => 'DESC'
+                    );
+                    
+                    $tours_query = new WP_Query( $args );
 
-                if ( $tours_query->have_posts() ) :
-                    while ( $tours_query->have_posts() ) : $tours_query->the_post();
-                        include(locate_template('template-parts/content-tour-card.php')); 
-                    endwhile; 
-                    wp_reset_postdata(); 
-                else : 
-                ?>
-                    <div class="col-span-full text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
-                        <i class="fas fa-box-open text-gray-400 text-4xl mb-3"></i>
-                        <p class="text-gray-500">در حال حاضر توری موجود نیست.</p>
-                    </div>
-                <?php endif; ?>
+                    if ( $tours_query->have_posts() ) :
+                        while ( $tours_query->have_posts() ) : $tours_query->the_post();
+                            include(locate_template('template-parts/content-tour-card.php')); 
+                        endwhile; 
+                        wp_reset_postdata(); 
+                    else : 
+                    ?>
+                        <div class="col-span-full text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-300 w-full">
+                            <i class="fas fa-box-open text-gray-400 text-4xl mb-3"></i>
+                            <p class="text-gray-500">در حال حاضر توری موجود نیست.</p>
+                        </div>
+                    <?php endif; ?>
 
+                </div>
+                <!-- Swiper Pagination (Only visible on mobile via CSS logic) -->
+                <div class="swiper-pagination md:hidden mt-4"></div>
             </div>
             
             <div class="mt-12 text-center">
@@ -338,9 +342,10 @@
     </section>
 </main>
 
-<!-- اسکریپت اطمینان برای فعال‌سازی دیت پیکر -->
+<!-- اسکریپت‌ها: دیت‌پیکر، اسلایدر Swiper و فیلتر -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // 1. Jalali Datepicker Init
         if (typeof jalaliDatepicker !== 'undefined') {
             jalaliDatepicker.startWatch({
                 minDate: "attr",
@@ -349,35 +354,61 @@
                 hasSecond: false
             });
         }
-    });
 
-    // Simple JS Filter for Tours
-    function filterTours(type, btn) {
-        // 1. Reset buttons visual state
-        document.querySelectorAll('.filter-btn').forEach(b => {
-            b.classList.remove('active', 'bg-primary-600', 'text-white', 'border-transparent');
-            b.classList.add('bg-transparent', 'text-gray-600', 'border-gray-200');
-        });
-        
-        // 2. Set active button visual state
-        btn.classList.add('active', 'bg-primary-600', 'text-white', 'border-transparent');
-        btn.classList.remove('bg-transparent', 'text-gray-600', 'border-gray-200');
-
-        // 3. Filter items
-        const items = document.querySelectorAll('.tour-card-item');
-        items.forEach(item => {
-            if (type === 'all') {
-                item.style.display = ''; // Reset display
-                // Optional: add animation class
-            } else {
-                if (item.getAttribute('data-vehicle') === type) {
-                    item.style.display = '';
-                } else {
-                    item.style.display = 'none';
+        // 2. Initialize Swiper (Only active on Mobile)
+        if (typeof Swiper !== 'undefined') {
+            const swiper = new Swiper(".myToursSwiper", {
+                slidesPerView: 1.2, // نمایش تکه‌ای از اسلاید بعدی
+                spaceBetween: 16,
+                centeredSlides: false,
+                observer: true, // مهم برای کارکرد فیلتر
+                observeParents: true, // مهم برای کارکرد فیلتر
+                pagination: {
+                    el: ".swiper-pagination",
+                    clickable: true,
+                },
+                breakpoints: {
+                    768: {
+                        enabled: false, // غیرفعال در دسکتاپ (تبدیل به گرید)
+                        slidesPerView: 'auto',
+                    }
                 }
+            });
+        }
+
+        // 3. Simple JS Filter for Tours
+        window.filterTours = function(type, btn) {
+            // A. تغییر استایل دکمه‌ها
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                b.classList.remove('active', 'bg-primary-600', 'text-white', 'border-transparent');
+                b.classList.add('bg-transparent', 'text-gray-600', 'border-gray-200');
+            });
+            btn.classList.add('active', 'bg-primary-600', 'text-white', 'border-transparent');
+            btn.classList.remove('bg-transparent', 'text-gray-600', 'border-gray-200');
+
+            // B. فیلتر کردن آیتم‌ها
+            const items = document.querySelectorAll('.tour-card-item');
+            items.forEach(item => {
+                const vehicleType = item.getAttribute('data-vehicle');
+                
+                // مقایسه نوع (مقادیر data-vehicle باید 'airplane' یا 'bus' باشند)
+                if (type === 'all') {
+                    item.style.display = ''; // نمایش
+                } else {
+                    if (vehicleType === type) {
+                        item.style.display = ''; // نمایش
+                    } else {
+                        item.style.display = 'none'; // مخفی
+                    }
+                }
+            });
+            
+            // C. آپدیت اسلایدر (در صورت نیاز)
+            if (typeof Swiper !== 'undefined' && document.querySelector('.myToursSwiper').swiper) {
+                document.querySelector('.myToursSwiper').swiper.update();
             }
-        });
-    }
+        }
+    });
 </script>
 
 <?php get_footer(); ?>

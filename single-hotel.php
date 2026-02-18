@@ -177,7 +177,7 @@
                         </div>
                         <div>
                             <span class="block text-xs text-gray-500">نیاز به راهنمایی دارید؟</span>
-                            <span class="font-bold text-gray-800 dir-ltr block">021 - 8888 1234</span>
+                            <a class="font-bold text-gray-800 dir-ltr block" href="tel:+989123149415"> 09123149415</a>
                         </div>
                     </div>
                 </div>

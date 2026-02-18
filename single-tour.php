@@ -347,7 +347,7 @@
                                 ظرفیت تکمیل شد
                             </button>
                         <?php else: ?>
-                            <button onclick="openAuthSheet()" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary-600/30 transition transform hover:-translate-y-1 mb-3 flex justify-center items-center gap-2 group">
+                            <button onclick="openAuthSheet()" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary-600/30 transition transform hover:-translate-y-1 mb-3 flex justify-center items-center gap-2 group hidden">
                                 <span class="bg-white/20 rounded-full w-6 h-6 flex items-center justify-center group-hover:bg-white/30 transition">
                                     <i class="fas fa-check text-xs"></i>
                                 </span>
@@ -364,7 +364,7 @@
                         <?php if($aghsat): ?>
                         <div class="mt-4 pt-4 border-t border-dashed border-gray-200 text-xs text-gray-500 text-center leading-5">
                             <i class="fas fa-info-circle text-blue-500 ml-1"></i>
-                            امکان پرداخت اقساطی برای این تور فعال است.
+                            امکان پرداخت نقدی یا اقساطی برای این تور فعال است.
                         </div>
                         <?php endif; ?>
                     </div>
